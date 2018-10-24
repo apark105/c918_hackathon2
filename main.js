@@ -1,29 +1,16 @@
 $(document).ready(init);
 
-
-// var arrayOfPlayers = ["HafiDHimMi", "nickmercs", "arteezy", "sexyBamboe"];
-
 var arrayOfPlayers = [];
 
-var arrayCommaString = arrayOfPlayers.join();
 var twitchStreamer = "ninja";
 var onlinePlayerArray = [];
 
-var fortniteTopPlayers= {
-    ninja:"ninja",
-    nickmercs:"nickmercs",
-    TwitchProspering:"TwitchProspering",
-    TSM_Myth:"TSM_Myth",
-    CourageJD:"CourageJD"
-}
- 
 var dotaPlayers = {
-  masondota2: "315657960",
-  dendi: "70388657",
-  arteezy: "104070670",
-  sexyBamboe: "20321748",
-  singsing: "97577101",
-  darskyl: "161444478"
+    masondota2: "315657960",
+    dendi: "70388657",
+    arteezy: "104070670",
+    sexyBamboe: "20321748",
+    singsing: "97577101"
 }
 
 var bfPlayers = {
@@ -45,28 +32,16 @@ var fortniteTopPlayers = {
     'SypherPK': 'SypherPK'
 
 }
-
-
-// var leaguePlayser = {
-//     froggen: '71899217'
-// }
-
-//detFortnitePlayerData('NickMercs');
+detFortnitePlayerData('NickMercs');
 
 
 var gameData = [];
 
-
-var gameDataBf;
-var gameDataFortNite;
-var gameDataDota = {}; 
-var gameDataLeague = {};
-
-
 function init () {
-   createAllPlayersArray(dotaPlayers, bfPlayers, fortniteTopPlayers);
-   getOnlinePlayers();
-//    getLeaguePlayers()  
+    createAllPlayersArray(dotaPlayers, bfPlayers, fortniteTopPlayers);
+    getOnlinePlayers();
+    console.log('online: ', onlinePlayerArray);
+
 }
 
 function createAllPlayersArray(firstArray, secondArray, thirdArray){
@@ -78,6 +53,7 @@ function createAllPlayersArray(firstArray, secondArray, thirdArray){
 
 }
 
+
 function getBfPlayerData (player) {
     var ajaxConfig = {
         url: "https://danielpaschal.com/lfzproxies/battlefieldproxy.php",
@@ -88,20 +64,20 @@ function getBfPlayerData (player) {
             displayName: player
         },
         headers: {
-        "TRN-Api-Key": "2e1d6fb9-7bd6-4cd5-8121-2eeb037845eb"
+            "TRN-Api-Key": "2e1d6fb9-7bd6-4cd5-8121-2eeb037845eb"
         },
         success: function (response) {
-            var wins = response.result.basicStats.wins;
-            var losses = response.result.basicStats.losses;
-            var kills = response.result.basicStats.kills;
-            var deaths = response.result.basicStats.deaths;
-            var accuracyRatio = response.result.accuracyRatio;
-            gameDataBf = {'Player': player, 'Wins': wins, 'Losses': losses, 'Kills': kills, 'Deaths': deaths, 'Accuracy Ratio': accuracyRatio} 
+            gameData = response;
+            var wins = gameData.result.basicStats.wins;
+            var losses = gameData.result.basicStats.losses;
+            var kills = gameData.result.basicStats.kills;
+            var deaths = gameData.result.basicStats.deaths;
+            var accuracyRatio = gameData.result.accuracyRatio;
+            console.log(wins, losses, kills, deaths, accuracyRatio)
         }
     }
     $.ajax(ajaxConfig)
 }
-
 
 function getOnlinePlayers(){
     var arrayCommaString = arrayOfPlayers.join();
@@ -111,14 +87,15 @@ function getOnlinePlayers(){
         "url": "https://api.twitch.tv/kraken/streams?channel="+arrayCommaString,
         "method": "GET",
         "headers": {
-          "Client-ID": "2jfkzp4pqy42ge7y17na6l0kf8fdtx",
+            "Client-ID": "2jfkzp4pqy42ge7y17na6l0kf8fdtx",
         }
-      }
-      $.ajax(settings).done(function (response) {
+    }
+    $.ajax(settings).done(function (response) {
         makeOnlinePlayerObj(response)
         renderLivePlayersOnDom();
-      });
-      
+        console.log(onlinePlayerArray);
+    });
+
 }
 
 function makeOnlinePlayerObj(response){
@@ -130,71 +107,59 @@ function makeOnlinePlayerObj(response){
         var status = response.streams[i].channel.status;
         var viewers = response.streams[i].viewers;
 
-        tempPlayerObj.game = streamingGame; 
+        tempPlayerObj.game = streamingGame;
         tempPlayerObj.thumbnail = thumbnail;
         tempPlayerObj.displayName = displayName;
         onlinePlayerArray.push(tempPlayerObj);
 
-        //console.log(response);
-        //console.log('GAME: ', onlinePlayerArray);
 
+        console.log(response);
     }}
-    
+
 function getDotaPlayers(player){
-    gameDataDota.Player = player;
-   var accountInfo = {
-      "url": "https://api.opendota.com/api/players/"+player,
-      "method": "GET"
+    var accountInfo = {
+        "url": "https://api.opendota.com/api/players/"+player,
+        "method": "GET"
     }
 
     var winLoss = {
-       "url": "https://api.opendota.com/api/players/"+player+"/wl",
-       "method": "GET"
+        "url": "https://api.opendota.com/api/players/"+player+"/wl",
+        "method": "GET"
     }
 
     var previousGame = {
-      "url": "https://api.opendota.com/api/players/"+player+"/matches",
-      "method": "GET"
+        "url": "https://api.opendota.com/api/players/"+player+"/matches",
+        "method": "GET"
     }
-    
+
     $.ajax(accountInfo).done(function (response) {
-        gameDataDota.SoloRank = response.solo_competitive_rank
+        dotaPlayers.soloRank = response.solo_competitive_rank
     });
 
     $.ajax(winLoss).done(function (response2) {
-        gameDataDota.Wins = response2.win;
-        gameDataDota.Loses = response2.lose;
+        dotaPlayers.wins = response2.win;
+        dotaPlayers.loses = response2.lose;
     });
 
     $.ajax(previousGame).done(function (response3) {
-        gameDataDota.Kills = response3[0].kills;
-        gameDataDota.Deaths = response3[0].deaths;
-        gameDataDota.Assists = response3[0].assists;
-      if(response3[0].radiant_win === false){
-        gameDataDota.Win = "lost"
-      }else{
-        gameDataDota.Win = "win"
-      }
+        dotaPlayers.kills = response3[0].kills;
+        dotaPlayers.deaths = response3[0].deaths;
+        dotaPlayers.assists = response3[0].assists;
+        if(response3[0].radiant_win === false){
+            dotaPlayers.win = "lost"
+        }else{
+            dotaPlayers.win = "win"
+        }
+        console.log(dotaPlayers)
     });
 }
-
-
-var fortniteTopPlayers= [
-    {name: 'Ninja', gtag: 'Ninja'},
-    {name: 'NickMercs', gtag: 'NICKMERCS'},
-    {name: 'TwitchProspering,  gtag: TwitchProspering' },
-    {name: 'twitch_bogdanakh', gtag: 'twitch_bogdanakh'},
-    {name: 'TSM_Myth', gtag: 'TSM_Myth'},
-    {name: 'CourageJD', gtag: 'CourageJD'},
-
-]
 
 
 
 var fortnitePlayersData = [];
 
 function detFortnitePlayerData(playerName) {
-   var fortniteStatsObject = {};
+    var fortniteStatsObject = {};
     var settings = {
         "async": true,
         "crossDomain": true,
@@ -211,11 +176,6 @@ function detFortnitePlayerData(playerName) {
     }
 
     $.ajax(settings).done(function (response) {
-
-        apiCallDataForTwitchProspering = response;
-    });
-}
-
         fortnitePlayersData = response;
         console.log(fortnitePlayersData);
         for (var index = 6; index < fortnitePlayersData.lifeTimeStats.length; index++){
@@ -226,92 +186,14 @@ function detFortnitePlayerData(playerName) {
 }
 
 
+
 function renderLivePlayersOnDom() {
-    
-    for (let i=0; i<onlinePlayerArray.length;i++){
-        
-        let playerCard = $("<div>", {
-        addClass: "playerCard",
-        css: ({"background-image": "url("+onlinePlayerArray[i].thumbnail+")"}),
-        on: {
-            click: function() {
-                let streamName = onlinePlayerArray[i].displayName
-                displayVideo(streamName);
-                console.log(i)
-                let gameName = onlinePlayerArray[i].game;
-                console.log(gameDataFetch(gameName));
-                // displayStats(gameDataFetch(gameName));
-                //
-                //function to sort which gameDataFetch function to call. 
-            }
-        },
-        appendTo: $("#livePlayers"),
+
+    for (var i=0; i<onlinePlayerArray.length;i++){
+
+        var playerCard = $("<div>").addClass("playerCard").css({
+            "background-image": "url("+onlinePlayerArray[i].thumbnail+")",
         })
+        $("#livePlayers").append(playerCard);
     }
 }
-//convert twitch name to gameID
-//gamer name 
-function displayVideo(twitchName) {
-    $('.container').empty();
-    console.log(twitchName);
-    var createIframe = $('<iframe>', {
-        addClass: 'currentVideo',
-        attr: ({
-            'src': `https://player.twitch.tv/?channel=${twitchName}&muted=true`, 
-            'height': "720",
-            'width': "1280",
-            'frameborder': "0",
-            'scrolling': "no",
-            'allowfullscreen': "true"
-            }),
-        appendTo: $('.container')
-    })
-    //             //need to grab data from obj using 
-    // displayStats(gameDataBf);
-}
-
-
-function displayStats(gameObj) {
-    var overallStatsDiv = $('<div>').attr('id', 'stats')
-    for (var key in gameObj) {
-        var statsCont = $('<div>').addClass('statsCont');
-        var statKey = $('<div>').addClass('statKey').text(key);
-        var statVal = $('<div>').addClass('statValue').text(gameObj[key]);
-        statsCont.append(statKey, statVal);
-        overallStatsDiv.append(statsCont);
-    }
-    $('.container').append(overallStatsDiv)
-}
-
-function gameDataFetch (game) {
-    //if fortnite, call that function data and grab that info
-    switch (game) {
-        case 'Fortnite':
-            console.log('fortnite')
-            break;
-        case 'Dota 2':
-            console.log('Dota 2')
-            //code
-            break;
-        case 'Battlefield 1': 
-            console.log('Battlefield 1')
-            //code
-            break; 
-    }
-    //if battlefield, call that function data
-    //if dota, call that function data 
-
-}
-
-// function getLeaguePlayers(){
-//     var accountInfo = {
-//         "url": "https://na1.api.riotgames.com/lol/summoner/v3/summoners/71899217?api_key=RGAPI-25569727-3b8d-4531-ad45-b80cd4d1a8f3",
-//         "method": "GET",
-//         dataType: "json"
-//         }
-      
-//       $.ajax(accountInfo).done(function (response) {
-//         console.log(response);
-//       });
-// }
-
